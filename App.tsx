@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Wallet, Heart, Coins, Link2, Users, Loader2, CloudDone } from 'lucide-react';
+import { Wallet, Heart, Coins, Link2, Users, Loader2 } from 'lucide-react';
 import IncomeTracker from './components/IncomeTracker';
 import Wishlist from './components/Wishlist';
 import Celebration from './components/Celebration';
@@ -97,7 +97,7 @@ const App: React.FC = () => {
 
   // 如果未配对，显示配对屏幕
   if (!familyConfig.familyId) {
-    return <PairingScreen onPairSuccess={handlePairSuccess} currentUser={currentUser} onSwitchUser={setCurrentUser} profiles={profiles} />;
+    return <PairingScreen onPairSuccess={handlePairSuccess} />;
   }
 
   return (

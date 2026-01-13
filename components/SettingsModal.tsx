@@ -40,7 +40,7 @@ const SettingsModal: React.FC<Props> = ({ profiles, familyConfig, onUnpair, onUp
               </div>
               <div className="flex-1">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  {user === 'wife' ? '老婆' : '老公'} 的称呼
+                  名字
                 </p>
                 <input 
                   className="w-full bg-slate-50 border-none rounded-xl px-4 py-2 font-bold text-slate-700 focus:ring-2 focus:ring-rose-500/20"

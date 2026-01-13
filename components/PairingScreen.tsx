@@ -1,16 +1,13 @@
 
 import React, { useState } from 'react';
-import { Link2, Sparkles, ChevronRight, Copy, Users, Heart } from 'lucide-react';
-import { UserID, UserProfile, FamilyConfig } from '../types';
+import { Link2, ChevronRight, Copy, Heart } from 'lucide-react';
+import { FamilyConfig } from '../types';
 
 interface Props {
   onPairSuccess: (config: FamilyConfig) => void;
-  currentUser: UserID;
-  onSwitchUser: (user: UserID) => void;
-  profiles: { husband: UserProfile; wife: UserProfile };
 }
 
-const PairingScreen: React.FC<Props> = ({ onPairSuccess, currentUser, onSwitchUser, profiles }) => {
+const PairingScreen: React.FC<Props> = ({ onPairSuccess }) => {
   const [step, setStep] = useState<'start' | 'create' | 'join'>('start');
   const [inputCode, setInputCode] = useState('');
   const [generatedCode] = useState(() => Math.floor(100000 + Math.random() * 900000).toString());
@@ -19,7 +16,7 @@ const PairingScreen: React.FC<Props> = ({ onPairSuccess, currentUser, onSwitchUs
     if (inputCode.length === 6) {
       onPairSuccess({
         familyId: `fam_${inputCode}`,
-        pairedUserId: currentUser === 'wife' ? 'husband' : 'wife'
+        pairedUserId: null // 由后端或同步逻辑后续确定
       });
     }
   };
@@ -27,7 +24,7 @@ const PairingScreen: React.FC<Props> = ({ onPairSuccess, currentUser, onSwitchUs
   const handleCreateComplete = () => {
     onPairSuccess({
       familyId: `fam_${generatedCode}`,
-      pairedUserId: currentUser === 'wife' ? 'husband' : 'wife'
+      pairedUserId: null
     });
   };
 
@@ -88,6 +85,7 @@ const PairingScreen: React.FC<Props> = ({ onPairSuccess, currentUser, onSwitchUs
             >
               已发送，进入应用
             </button>
+            <button onClick={() => setStep('start')} className="text-xs font-bold text-slate-300 uppercase tracking-widest">返回</button>
           </div>
         )}
 
@@ -115,23 +113,6 @@ const PairingScreen: React.FC<Props> = ({ onPairSuccess, currentUser, onSwitchUs
             <button onClick={() => setStep('start')} className="text-xs font-bold text-slate-300 uppercase tracking-widest">返回</button>
           </div>
         )}
-      </div>
-
-      {/* 底部切换身份 */}
-      <div className="mt-auto pt-10 text-center">
-        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-4">您当前的身份是</p>
-        <div className="inline-flex bg-white p-1.5 rounded-3xl shadow-sm border border-slate-100">
-          {(['wife', 'husband'] as const).map(user => (
-            <button 
-              key={user}
-              onClick={() => onSwitchUser(user)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl transition-all ${currentUser === user ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400'}`}
-            >
-              <img src={profiles[user].avatar} className="w-5 h-5 rounded-full" />
-              <span className="text-xs font-black">{profiles[user].name}</span>
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   );
