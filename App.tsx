@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Wallet, Heart, Coins, Link2, Users, Loader2 } from 'lucide-react';
-import IncomeTracker from './components/IncomeTracker';
-import Wishlist from './components/Wishlist';
-import Celebration from './components/Celebration';
-import SettingsModal from './components/SettingsModal';
-import PairingScreen from './components/PairingScreen';
-import { IncomeRecord, Wish, UserID, Tab, UserProfile, FamilyConfig } from './types';
+import React, { useState, useEffect } from 'react';
+import { Wallet, Heart, Coins, Users } from 'lucide-react';
+import IncomeTracker from './components/IncomeTracker.tsx';
+import Wishlist from './components/Wishlist.tsx';
+import Celebration from './components/Celebration.tsx';
+import SettingsModal from './components/SettingsModal.tsx';
+import PairingScreen from './components/PairingScreen.tsx';
+import { IncomeRecord, Wish, UserID, Tab, UserProfile, FamilyConfig } from './types.ts';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('income');
@@ -15,7 +15,6 @@ const App: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   
-  // 家庭配对状态
   const [familyConfig, setFamilyConfig] = useState<FamilyConfig>(() => {
     const saved = localStorage.getItem('earn_family_config');
     return saved ? JSON.parse(saved) : { familyId: null, pairedUserId: null };
@@ -49,7 +48,6 @@ const App: React.FC = () => {
 
   const [coins, setCoins] = useState<{ id: number; left: string }[]>([]);
 
-  // 模拟同步逻辑
   const triggerSync = () => {
     setIsSyncing(true);
     setTimeout(() => setIsSyncing(false), 800);
@@ -77,25 +75,20 @@ const App: React.FC = () => {
     const newRecord: IncomeRecord = { ...record, id: Math.random().toString(36).substr(2, 9), timestamp: Date.now() };
     setRecords(prev => [...prev, newRecord]);
     
-    // 仅在盈利超过 1000 时触发庆祝
     if (newRecord.amount >= 1000) {
       setShowCelebration({ show: true, name: profiles[newRecord.userId].name });
-      
       const newCoins = Array.from({ length: 8 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 80 + 10}%` }));
       setCoins(prev => [...prev, ...newCoins]);
-      if (window.navigator.vibrate) window.navigator.vibrate([10, 30, 50]);
       setTimeout(() => setCoins(prev => prev.filter(c => !newCoins.some(nc => nc.id === c.id))), 1200);
     }
   };
 
   const handlePairSuccess = (config: FamilyConfig) => {
     setFamilyConfig(config);
-    // 配对成功时的特效
     const newCoins = Array.from({ length: 15 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 90 + 5}%` }));
     setCoins(prev => [...prev, ...newCoins]);
   };
 
-  // 如果未配对，显示配对屏幕
   if (!familyConfig.familyId) {
     return <PairingScreen onPairSuccess={handlePairSuccess} />;
   }
@@ -113,7 +106,6 @@ const App: React.FC = () => {
         />
       )}
       
-      {/* 同步状态指示器 */}
       <div className={`fixed top-4 right-4 z-[80] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white shadow-lg border border-slate-100 transition-all duration-300 ${isSyncing ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
         <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Sync</span>
