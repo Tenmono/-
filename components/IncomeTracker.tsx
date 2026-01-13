@@ -11,7 +11,8 @@ import {
   Edit2,
   ChevronRight,
   History,
-  Calendar
+  Calendar,
+  TrendingDown
 } from 'lucide-react';
 import { IncomeRecord, UserID, UserProfile } from '../types';
 import { parseIncomeText } from '../services/geminiService';
@@ -44,15 +45,25 @@ const IncomeTracker: React.FC<Props> = ({
   const [showHistory, setShowHistory] = useState(false);
   
   const yearlyTotal = useMemo(() => records.reduce((sum, r) => sum + r.amount, 0), [records]);
-  const progressPercent = Math.min((yearlyTotal / yearlyGoal) * 100, 100);
+  const progressPercent = Math.min(Math.max((yearlyTotal / yearlyGoal) * 100, 0), 100);
 
   // 格式化金额辅助函数
   const formatShorthand = (num: number) => {
-    if (num >= 10000) return (num / 10000).toFixed(1).replace(/\.0$/, '') + 'W';
-    return num.toLocaleString();
+    const absNum = Math.abs(num);
+    const sign = num < 0 ? '-' : '+';
+    let formatted = '';
+    if (absNum >= 10000) {
+      formatted = (absNum / 10000).toFixed(1).replace(/\.0$/, '') + 'W';
+    } else {
+      formatted = absNum.toLocaleString();
+    }
+    return `${sign}¥${formatted}`;
   };
 
-  const formatFull = (num: number) => num.toLocaleString('zh-CN');
+  const formatFull = (num: number) => {
+    const sign = num < 0 ? '-' : '';
+    return `${sign}¥${Math.abs(num).toLocaleString('zh-CN')}`;
+  };
 
   // 处理流水历史分组
   const historyData = useMemo(() => {
@@ -104,7 +115,7 @@ const IncomeTracker: React.FC<Props> = ({
         className="bg-gradient-to-br from-rose-600 to-red-700 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group active:scale-[0.98] transition-transform cursor-pointer"
       >
         <div className="absolute -top-10 -right-10 opacity-10 group-hover:scale-110 transition-transform duration-1000">
-          <TrendingUp className="w-48 h-48" />
+          {yearlyTotal >= 0 ? <TrendingUp className="w-48 h-48" /> : <TrendingDown className="w-48 h-48" />}
         </div>
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-1">
@@ -112,7 +123,7 @@ const IncomeTracker: React.FC<Props> = ({
             <History className="w-4 h-4 text-rose-100/40" />
           </div>
           <h2 className="text-4xl font-black mb-6 tracking-tighter">
-            ¥{formatFull(yearlyTotal)}
+            {formatFull(yearlyTotal)}
           </h2>
           
           <div className="space-y-3">
@@ -121,7 +132,7 @@ const IncomeTracker: React.FC<Props> = ({
                 className="flex items-center gap-1.5 group/goal"
                 onClick={(e) => { e.stopPropagation(); setIsEditingGoal(true); }}
               >
-                <span className="text-[10px] font-bold text-rose-100/80 uppercase">Target ¥{formatShorthand(yearlyGoal)}</span>
+                <span className="text-[10px] font-bold text-rose-100/80 uppercase">Target ¥{(yearlyGoal/10000).toFixed(1)}W</span>
                 <Edit2 className="w-3 h-3 text-rose-100/40 opacity-0 group-hover/goal:opacity-100 transition-opacity" />
               </div>
               <span className="text-xl font-black">{progressPercent.toFixed(1)}%</span>
@@ -181,7 +192,6 @@ const IncomeTracker: React.FC<Props> = ({
           </div>
 
           <div className="p-6 space-y-10 pb-20">
-            {/* Fix: Added type assertion to monthData to resolve 'unknown' type errors */}
             {Object.entries(historyData).map(([month, monthData]) => {
               const mData = monthData as { total: number; days: Record<string, { total: number; items: IncomeRecord[] }> };
               return (
@@ -189,13 +199,14 @@ const IncomeTracker: React.FC<Props> = ({
                   <div className="flex justify-between items-end border-b-2 border-slate-200 pb-2">
                     <h4 className="text-2xl font-black text-slate-800 tracking-tighter">{month}</h4>
                     <div className="text-right">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">月度累计</p>
-                      <p className="text-lg font-black text-rose-600">+¥{formatFull(mData.total)}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">月度净收益</p>
+                      <p className={`text-lg font-black ${mData.total >= 0 ? 'text-rose-600' : 'text-emerald-500'}`}>
+                        {formatFull(mData.total)}
+                      </p>
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    {/* Fix: Added type assertion to dayData to resolve 'unknown' type errors */}
                     {Object.entries(mData.days).map(([day, dayData]) => {
                       const dData = dayData as { total: number; items: IncomeRecord[] };
                       return (
@@ -208,21 +219,27 @@ const IncomeTracker: React.FC<Props> = ({
                           </div>
                           <div className="flex-1 space-y-2">
                             <div className="flex justify-between items-center px-1">
-                              <span className="text-[10px] font-black text-slate-300">当日共 ¥{formatFull(dData.total)}</span>
+                              <span className="text-[10px] font-black text-slate-300">当日共 {formatFull(dData.total)}</span>
                             </div>
                             <div className="space-y-2">
                               {dData.items.map(record => (
                                 <div key={record.id} className="bg-white px-4 py-3 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm">
                                   <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
-                                      {record.category.includes('工作') ? <Briefcase className="w-4 h-4 text-rose-500" /> : <ShoppingBag className="w-4 h-4 text-amber-500" />}
+                                      {record.amount >= 0 ? (
+                                        <Briefcase className="w-4 h-4 text-rose-500" />
+                                      ) : (
+                                        <TrendingDown className="w-4 h-4 text-emerald-500" />
+                                      )}
                                     </div>
                                     <div>
                                       <p className="text-xs font-black text-slate-700">{record.source}</p>
                                       <p className="text-[8px] font-bold text-slate-300 uppercase">{profiles[record.userId].name}</p>
                                     </div>
                                   </div>
-                                  <span className="text-sm font-black text-rose-600">+¥{formatFull(record.amount)}</span>
+                                  <span className={`text-sm font-black ${record.amount >= 0 ? 'text-rose-600' : 'text-emerald-500'}`}>
+                                    {formatShorthand(record.amount)}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -246,7 +263,7 @@ const IncomeTracker: React.FC<Props> = ({
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isParsing}
-            placeholder='“今天副业赚了1000”'
+            placeholder='“今天基金亏了80000”'
             className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-6 pr-14 focus:ring-0 text-slate-800 font-bold placeholder:text-slate-300"
           />
           <button 
@@ -276,7 +293,7 @@ const IncomeTracker: React.FC<Props> = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between px-2">
           <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-            每日流水
+            收支流水
             <span className="text-[10px] text-slate-300 font-bold">RECENT</span>
           </h3>
           <button 
@@ -302,18 +319,24 @@ const IncomeTracker: React.FC<Props> = ({
               </button>
               
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-rose-50">
-                  {record.category.includes('工作') ? <Briefcase className="w-5 h-5 text-rose-600" /> : <ShoppingBag className="w-5 h-5 text-amber-600" />}
+                <div className={`w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center ${record.amount >= 0 ? 'group-hover:bg-rose-50' : 'group-hover:bg-emerald-50'}`}>
+                  {record.amount >= 0 ? (
+                    <Briefcase className="w-5 h-5 text-rose-600" />
+                  ) : (
+                    <TrendingDown className="w-5 h-5 text-emerald-500" />
+                  )}
                 </div>
                 <div>
                   <h4 className="font-black text-slate-800 text-sm leading-tight">{record.source}</h4>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[9px] font-black text-rose-500/60 uppercase">{profiles[record.userId].name}</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase">{profiles[record.userId].name}</span>
                     <span className="text-[9px] font-bold text-slate-300">{new Date(record.timestamp).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
-              <span className="text-xl font-black text-rose-600 tracking-tight">+¥{formatShorthand(record.amount)}</span>
+              <span className={`text-xl font-black tracking-tight ${record.amount >= 0 ? 'text-rose-600' : 'text-emerald-500'}`}>
+                {formatShorthand(record.amount)}
+              </span>
             </div>
           ))
         )}

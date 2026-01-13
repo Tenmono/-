@@ -77,14 +77,15 @@ const App: React.FC = () => {
     const newRecord: IncomeRecord = { ...record, id: Math.random().toString(36).substr(2, 9), timestamp: Date.now() };
     setRecords(prev => [...prev, newRecord]);
     
+    // 仅在盈利超过 1000 时触发庆祝
     if (newRecord.amount >= 1000) {
       setShowCelebration({ show: true, name: profiles[newRecord.userId].name });
+      
+      const newCoins = Array.from({ length: 8 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 80 + 10}%` }));
+      setCoins(prev => [...prev, ...newCoins]);
+      if (window.navigator.vibrate) window.navigator.vibrate([10, 30, 50]);
+      setTimeout(() => setCoins(prev => prev.filter(c => !newCoins.some(nc => nc.id === c.id))), 1200);
     }
-
-    const newCoins = Array.from({ length: 8 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 80 + 10}%` }));
-    setCoins(prev => [...prev, ...newCoins]);
-    if (window.navigator.vibrate) window.navigator.vibrate([10, 30, 50]);
-    setTimeout(() => setCoins(prev => prev.filter(c => !newCoins.some(nc => nc.id === c.id))), 1200);
   };
 
   const handlePairSuccess = (config: FamilyConfig) => {
@@ -114,8 +115,8 @@ const App: React.FC = () => {
       
       {/* 同步状态指示器 */}
       <div className={`fixed top-4 right-4 z-[80] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white shadow-lg border border-slate-100 transition-all duration-300 ${isSyncing ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
-        <Loader2 className="w-3 h-3 text-rose-500 animate-spin" />
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Shared Syncing</span>
+        <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Sync</span>
       </div>
 
       <div className="px-6 pt-12 pb-32">
