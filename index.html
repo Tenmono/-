@@ -21,6 +21,14 @@
         .coin-animation {
             animation: coin-fly 0.8s ease-out forwards;
         }
+        /* 隐藏滚动条但保留滚动功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 <script type="importmap">
 {
@@ -36,5 +44,7 @@
 </head>
 <body>
     <div id="root"></div>
+    <!-- 入口文件引用 -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
