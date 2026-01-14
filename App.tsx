@@ -23,8 +23,8 @@ const App: React.FC = () => {
   const [profiles, setProfiles] = useState<{ husband: UserProfile; wife: UserProfile }>(() => {
     const saved = localStorage.getItem('earn_profiles');
     return saved ? JSON.parse(saved) : {
-      husband: { name: '老公', avatar: '👨🏻‍💻' },
-      wife: { name: '老婆', avatar: '👩🏻‍🎨' }
+      husband: { name: '男', avatar: '👨🏻‍💻' },
+      wife: { name: '女', avatar: '👩🏻‍🎨' }
     };
   });
 
