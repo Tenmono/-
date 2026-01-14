@@ -17,6 +17,11 @@ export interface IncomeRecord {
 
 export type WishStatus = 'pending' | 'ongoing' | 'completed';
 
+export interface WishSaving {
+  amount: number;
+  timestamp: number;
+}
+
 export interface Wish {
   id: string;
   title: string;
@@ -26,6 +31,7 @@ export interface Wish {
   imageUrl: string;
   userId: UserID;
   isPinned?: boolean;
+  savingsHistory?: WishSaving[];
 }
 
 export type Tab = 'income' | 'wishlist';

@@ -1,5 +1,7 @@
 {
   "name": "赚了吗",
-  "description": "专注正向回馈的夫妻共用记账工具，通过AI提取收益信息并智能规划未来蓝图。",
-  "requestFramePermissions": []
+  "description": "专注正向回馈的夫妻共用记账工具，全本地离线运行，通过 QR 码实现安全的数据同步。",
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

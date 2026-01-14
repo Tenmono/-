@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Wallet, Heart, Coins, Users } from 'lucide-react';
+import { Wallet, Heart, Coins, Users, ShieldCheck } from 'lucide-react';
 import IncomeTracker from './components/IncomeTracker.tsx';
 import Wishlist from './components/Wishlist.tsx';
 import Celebration from './components/Celebration.tsx';
@@ -13,16 +13,19 @@ const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<UserID>('wife');
   const [showCelebration, setShowCelebration] = useState<{ show: boolean; name: string }>({ show: false, name: '' });
   const [showSettings, setShowSettings] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  
+  const [isLocalSaved, setIsLocalSaved] = useState(false);
+
   const [familyConfig, setFamilyConfig] = useState<FamilyConfig>(() => {
     const saved = localStorage.getItem('earn_family_config');
     return saved ? JSON.parse(saved) : { familyId: null, pairedUserId: null };
   });
 
-  const [profiles, setProfiles] = useState<{ husband: UserProfile; wife: UserProfile }>({
-    husband: { name: '老公', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=husband' },
-    wife: { name: '老婆', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wife' }
+  const [profiles, setProfiles] = useState<{ husband: UserProfile; wife: UserProfile }>(() => {
+    const saved = localStorage.getItem('earn_profiles');
+    return saved ? JSON.parse(saved) : {
+      husband: { name: '老公', avatar: '👨🏻‍💻' },
+      wife: { name: '老婆', avatar: '👩🏻‍🎨' }
+    };
   });
 
   const [yearlyGoal, setYearlyGoal] = useState<number>(() => {
@@ -32,47 +35,30 @@ const App: React.FC = () => {
 
   const [records, setRecords] = useState<IncomeRecord[]>(() => {
     const saved = localStorage.getItem('earn_records');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', amount: 15000, source: '1月工资', category: '工作', timestamp: new Date(2026, 0, 5).getTime(), userId: 'wife' },
-      { id: '3', amount: 18000, source: '1月工资', category: '工作', timestamp: new Date(2026, 0, 5).getTime(), userId: 'husband' },
-    ];
+    return saved ? JSON.parse(saved) : [];
   });
   
   const [wishes, setWishes] = useState<Wish[]>(() => {
     const saved = localStorage.getItem('earn_wishes');
-    return saved ? JSON.parse(saved) : [
-      { id: 'p1', title: '日本双人5日游', targetAmount: 25000, currentSavedAmount: 8500, status: 'ongoing', userId: 'wife', imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=200&h=200&fit=crop' },
-      { id: 'p2', title: '更换 iPhone 17 Pro', targetAmount: 9000, currentSavedAmount: 0, status: 'pending', userId: 'husband', imageUrl: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=200&h=200&fit=crop' }
-    ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [coins, setCoins] = useState<{ id: number; left: string }[]>([]);
 
-  const triggerSync = () => {
-    setIsSyncing(true);
-    setTimeout(() => setIsSyncing(false), 800);
-  };
-
   useEffect(() => {
     localStorage.setItem('earn_records', JSON.stringify(records));
-    if (familyConfig.familyId) triggerSync();
-  }, [records, familyConfig.familyId]);
-
-  useEffect(() => {
     localStorage.setItem('earn_wishes', JSON.stringify(wishes));
-    if (familyConfig.familyId) triggerSync();
-  }, [wishes, familyConfig.familyId]);
-
-  useEffect(() => {
     localStorage.setItem('earn_yearly_goal', yearlyGoal.toString());
-  }, [yearlyGoal]);
-
-  useEffect(() => {
     localStorage.setItem('earn_family_config', JSON.stringify(familyConfig));
-  }, [familyConfig]);
+    localStorage.setItem('earn_profiles', JSON.stringify(profiles));
+    
+    setIsLocalSaved(true);
+    const timer = setTimeout(() => setIsLocalSaved(false), 2000);
+    return () => clearTimeout(timer);
+  }, [records, wishes, yearlyGoal, familyConfig, profiles]);
 
   const addIncomeRecord = (record: Omit<IncomeRecord, 'id' | 'timestamp'>) => {
-    const newRecord: IncomeRecord = { ...record, id: Math.random().toString(36).substr(2, 9), timestamp: Date.now() };
+    const newRecord: IncomeRecord = { ...record, id: `rec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, timestamp: Date.now() };
     setRecords(prev => [...prev, newRecord]);
     
     if (newRecord.amount >= 1000) {
@@ -83,14 +69,27 @@ const App: React.FC = () => {
     }
   };
 
-  const handlePairSuccess = (config: FamilyConfig) => {
-    setFamilyConfig(config);
+  const updateIncomeRecord = (id: string, updates: Partial<IncomeRecord>) => {
+    setRecords(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const handleMergeData = (importedData: { records: IncomeRecord[], wishes: Wish[] }) => {
+    setRecords(prev => {
+      const existingIds = new Set(prev.map(r => r.id));
+      const newRecords = importedData.records.filter(r => !existingIds.has(r.id));
+      return [...prev, ...newRecords].sort((a, b) => a.timestamp - b.timestamp);
+    });
+    setWishes(prev => {
+      const existingIds = new Set(prev.map(w => w.id));
+      const newWishes = importedData.wishes.filter(w => !existingIds.has(w.id));
+      return [...prev, ...newWishes];
+    });
     const newCoins = Array.from({ length: 15 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 90 + 5}%` }));
     setCoins(prev => [...prev, ...newCoins]);
   };
 
   if (!familyConfig.familyId) {
-    return <PairingScreen onPairSuccess={handlePairSuccess} />;
+    return <PairingScreen onPairSuccess={(config) => setFamilyConfig(config)} />;
   }
 
   return (
@@ -100,15 +99,18 @@ const App: React.FC = () => {
         <SettingsModal 
           profiles={profiles} 
           familyConfig={familyConfig}
+          records={records}
+          wishes={wishes}
+          onImportData={handleMergeData}
           onUnpair={() => setFamilyConfig({ familyId: null, pairedUserId: null })}
           onUpdate={(u, up) => setProfiles(p => ({...p, [u]: {...p[u], ...up}}))} 
           onClose={() => setShowSettings(false)} 
         />
       )}
       
-      <div className={`fixed top-4 right-4 z-[80] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white shadow-lg border border-slate-100 transition-all duration-300 ${isSyncing ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
-        <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Sync</span>
+      <div className={`fixed top-4 right-4 z-[80] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white shadow-lg border border-slate-100 transition-all duration-300 ${isLocalSaved ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
+        <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
+        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Local Encrypted</span>
       </div>
 
       <div className="px-6 pt-12 pb-32">
@@ -118,16 +120,16 @@ const App: React.FC = () => {
               赚了吗 <span className="text-rose-600 italic">?</span>
             </h1>
             <div className="flex items-center gap-1 mt-0.5">
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">Wealth Vision 2026</p>
-              <Users className="w-2.5 h-2.5 text-rose-500/50" />
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em]">Purely Local 2026</p>
+              <Users className="w-2.5 h-2.5 text-blue-500/50" />
             </div>
           </div>
-          <div className="flex -space-x-3">
-            <div onClick={() => setCurrentUser('wife')} className={`w-14 h-14 rounded-[1.25rem] border-4 border-white shadow-lg overflow-hidden transition-all cursor-pointer ${currentUser === 'wife' ? 'ring-4 ring-rose-500/20 scale-110 z-10' : 'opacity-40 grayscale'}`}>
-               <img src={profiles.wife.avatar} alt="老婆" />
+          <div className="flex -space-x-2">
+            <div onClick={() => setCurrentUser('wife')} className={`w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 shadow-md flex items-center justify-center text-2xl transition-all cursor-pointer ${currentUser === 'wife' ? 'ring-4 ring-rose-500/20 scale-110 z-10' : 'opacity-40 grayscale'}`}>
+               {profiles.wife.avatar}
             </div>
-            <div onClick={() => setCurrentUser('husband')} className={`w-14 h-14 rounded-[1.25rem] border-4 border-white shadow-lg overflow-hidden transition-all cursor-pointer ${currentUser === 'husband' ? 'ring-4 ring-rose-500/20 scale-110 z-10' : 'opacity-40 grayscale'}`}>
-               <img src={profiles.husband.avatar} alt="老公" />
+            <div onClick={() => setCurrentUser('husband')} className={`w-12 h-12 rounded-2xl bg-white border-2 border-slate-100 shadow-md flex items-center justify-center text-2xl transition-all cursor-pointer ${currentUser === 'husband' ? 'ring-4 ring-rose-500/20 scale-110 z-10' : 'opacity-40 grayscale'}`}>
+               {profiles.husband.avatar}
             </div>
           </div>
         </header>
@@ -138,6 +140,7 @@ const App: React.FC = () => {
               records={records} 
               profiles={profiles} 
               onAddRecord={addIncomeRecord} 
+              onUpdateRecord={updateIncomeRecord}
               onDeleteRecord={id => setRecords(r => r.filter(x => x.id !== id))} 
               currentUser={currentUser} 
               onSwitchUser={setCurrentUser}
@@ -150,7 +153,7 @@ const App: React.FC = () => {
               profiles={profiles}
               currentUser={currentUser}
               onAddWish={(w) => {
-                setWishes(prev => [...prev, { ...w, id: Math.random().toString(36).substr(2, 9) }]);
+                setWishes(prev => [...prev, { ...w, id: `wish_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, savingsHistory: [] }]);
               }} 
               onUpdateWish={(id, updates) => {
                 setWishes(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
