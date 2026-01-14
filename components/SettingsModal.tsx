@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Camera, Link2Off, QrCode, ScanLine, Copy, CheckCircle2, ChevronRight } from 'lucide-react';
+import { X, Camera, Link2Off, QrCode, ScanLine, Copy, CheckCircle2 } from 'lucide-react';
 import { UserProfile, FamilyConfig, IncomeRecord, Wish } from '../types';
 import QRCode from 'qrcode';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -16,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-const EMOJIS = ['👨🏻‍💻', '👩🏻‍🎨', '🦁', '🐯', '🐷', '🐻', '🐼', '🦁', '🐱', '🐶', '🦊', '🐨', '🐰', '🐭', '🐣', '🌈', '💎', '🔥', '✨', '🍀'];
+const EMOJIS = ['👨🏻‍💻', '👩🏻‍🎨', '🦁', '🐯', '🐷', '🐻', '🐼', '🐱', '🐶', '🦊', '🐨', '🐰', '🐭', '🐣', '🌈', '💎', '🔥', '✨', '🍀', '💰', '🏠', '✈️', '🍎'];
 
 const SettingsModal: React.FC<Props> = ({ profiles, familyConfig, records, wishes, onImportData, onUnpair, onUpdate, onClose }) => {
   const [syncMode, setSyncMode] = useState<'none' | 'export' | 'import'>('none');
@@ -24,7 +24,6 @@ const SettingsModal: React.FC<Props> = ({ profiles, familyConfig, records, wishe
   const [importStatus, setImportStatus] = useState<'idle' | 'success'>('idle');
   const [editingAvatarId, setEditingAvatarId] = useState<'husband' | 'wife' | null>(null);
 
-  // 生成导出二维码
   useEffect(() => {
     if (syncMode === 'export') {
       const dataToExport = JSON.stringify({ records, wishes });
@@ -34,7 +33,6 @@ const SettingsModal: React.FC<Props> = ({ profiles, familyConfig, records, wishe
     }
   }, [syncMode, records, wishes]);
 
-  // 初始化扫描器
   useEffect(() => {
     if (syncMode === 'import') {
       const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
@@ -117,16 +115,10 @@ const SettingsModal: React.FC<Props> = ({ profiles, familyConfig, records, wishe
             ))}
 
             <div className="pt-8 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">隐私状态</p>
-                  <h4 className="text-sm font-bold text-slate-800 flex items-center gap-1.5 mt-1">本地端对端安全</h4>
-                </div>
-                <button onClick={() => { if(confirm('解除配对将清空连接状态，本地数据仍会保留。')) onUnpair(); }} className="p-3 bg-slate-100 text-slate-400 rounded-2xl active:scale-90 transition-all">
-                  <Link2Off className="w-5 h-5" />
-                </button>
-              </div>
-              <button onClick={onClose} className="w-full bg-slate-900 text-white py-5 rounded-3xl font-black text-xs">保存并返回</button>
+              <button onClick={() => { if(confirm('解除配对将清空连接状态，本地数据仍会保留。')) onUnpair(); }} className="w-full bg-slate-100 text-slate-400 py-4 rounded-2xl font-black text-xs mb-4 flex items-center justify-center gap-2">
+                <Link2Off className="w-4 h-4" /> 解除家庭连接
+              </button>
+              <button onClick={onClose} className="w-full bg-slate-900 text-white py-5 rounded-3xl font-black text-xs">完成设置</button>
             </div>
           </div>
         ) : syncMode === 'export' ? (

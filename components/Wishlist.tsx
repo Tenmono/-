@@ -142,13 +142,7 @@ const Wishlist: React.FC<Props> = ({
 
   return (
     <div className="pb-24 flex flex-col gap-5 animate-in fade-in duration-500">
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
-        accept="image/*" 
-        onChange={handleImageUpload} 
-      />
+      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
 
       <div className="flex items-center justify-between px-2">
         <h3 className="text-2xl font-black text-slate-800 tracking-tight">愿景蓝图</h3>
@@ -168,7 +162,6 @@ const Wishlist: React.FC<Props> = ({
         </div>
       )}
 
-      {/* 修改标题 Modal */}
       {editingTitleId && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-xs text-center animate-in zoom-in-95">
@@ -182,7 +175,6 @@ const Wishlist: React.FC<Props> = ({
         </div>
       )}
 
-      {/* 修改金额 Modal */}
       {editingTargetId && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-xs text-center animate-in zoom-in-95">
@@ -231,43 +223,23 @@ const Wishlist: React.FC<Props> = ({
           const estimatedDays = calculateEstimatedDays(wish.targetAmount, wish.currentSavedAmount, incomeRecords);
 
           return (
-            <div 
-              key={wish.id} 
-              draggable 
-              onDragStart={() => onDragStart(wish.id)}
-              onDragOver={(e) => onDragOver(e, index)} 
-              onDragEnd={() => setDraggedId(null)} 
-              className={`bg-white rounded-[2rem] transition-all duration-300 border border-slate-100 shadow-sm relative group ${isDragging ? 'opacity-30 scale-95' : 'opacity-100'}`}
-            >
-              {/* More Menu Dropdown */}
+            <div key={wish.id} draggable onDragStart={() => onDragStart(wish.id)} onDragOver={(e) => onDragOver(e, index)} onDragEnd={() => setDraggedId(null)} className={`bg-white rounded-[2rem] transition-all duration-300 border border-slate-100 shadow-sm relative group ${isDragging ? 'opacity-30 scale-95' : 'opacity-100'}`}>
               {isMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-[90]" onClick={() => setOpenMenuId(null)} />
                   <div className="absolute right-4 top-12 w-48 bg-white border border-slate-100 rounded-3xl shadow-2xl z-[100] p-2 animate-in zoom-in-95 origin-top-right">
-                    <button 
-                      onClick={() => { onUpdateWish(wish.id, { isPinned: !wish.isPinned }); setOpenMenuId(null); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 transition-colors"
-                    >
+                    <button onClick={() => { onUpdateWish(wish.id, { isPinned: !wish.isPinned }); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 transition-colors">
                       {wish.isPinned ? <PinOff className="w-4 h-4 text-slate-400" /> : <Pin className="w-4 h-4 text-rose-500" />}
-                      {wish.isPinned ? '取消置顶' : '置顶展示'}
+                      {wish.isPinned ? '取消置顶' : '置顶心愿'}
                     </button>
-                    <button 
-                      onClick={() => { setEditingTitleId(wish.id); setEditTitleForm(wish.title); setOpenMenuId(null); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 transition-colors"
-                    >
-                      <PencilLine className="w-4 h-4 text-slate-400" /> 重命名心愿
+                    <button onClick={() => { setEditingTitleId(wish.id); setEditTitleForm(wish.title); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 transition-colors">
+                      <PencilLine className="w-4 h-4 text-slate-400" /> 重命名
                     </button>
-                    <button 
-                      onClick={() => { setEditingTargetId(wish.id); setEditTargetForm(wish.targetAmount.toString()); setOpenMenuId(null); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 transition-colors"
-                    >
-                      <History className="w-4 h-4 text-slate-400" /> 更改目标金额
+                    <button onClick={() => { setEditingTargetId(wish.id); setEditTargetForm(wish.targetAmount.toString()); setOpenMenuId(null); }} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl text-xs font-bold text-slate-700 transition-colors">
+                      <History className="w-4 h-4 text-slate-400" /> 修改目标金额
                     </button>
                     <div className="h-px bg-slate-100 my-1 mx-2" />
-                    <button 
-                      onClick={() => handleDelete(wish)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-50 rounded-2xl text-xs font-bold text-rose-600 transition-colors"
-                    >
+                    <button onClick={() => handleDelete(wish)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-rose-50 rounded-2xl text-xs font-bold text-rose-600 transition-colors">
                       <Trash2 className="w-4 h-4" /> 移除心愿
                     </button>
                   </div>
@@ -275,17 +247,12 @@ const Wishlist: React.FC<Props> = ({
               )}
 
               <div className="p-4 flex gap-4 relative">
-                {/* Drag Handle */}
                 <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1">
                    <GripVertical className="w-4 h-4 text-slate-300" />
                 </div>
 
-                {/* Main Content */}
                 <div className="flex gap-4 flex-1 ml-4 overflow-hidden">
-                  <div 
-                    className="relative flex-shrink-0 cursor-pointer group/img"
-                    onClick={() => { activeImageWishId.current = wish.id; fileInputRef.current?.click(); }}
-                  >
+                  <div className="relative flex-shrink-0 cursor-pointer group/img" onClick={() => { activeImageWishId.current = wish.id; fileInputRef.current?.click(); }}>
                     <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-sm bg-slate-50 border border-slate-100">
                       <img src={wish.imageUrl} className="w-full h-full object-cover opacity-80" alt="" />
                       <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
@@ -306,17 +273,14 @@ const Wishlist: React.FC<Props> = ({
                            <div className="flex items-center gap-1 mt-1 text-slate-400">
                              <Clock className="w-2.5 h-2.5" />
                              <span className="text-[8px] font-bold">
-                               {estimatedDays === null ? '需更多收益数据' : `预计 ${estimatedDays} 天实现`}
+                               {estimatedDays === null ? '数据不足' : `预计 ${estimatedDays} 天`}
                              </span>
                            </div>
                          )}
                       </div>
                       <div className="flex gap-1 items-center flex-shrink-0">
                         {wish.status === 'completed' ? <Trophy className="w-3.5 h-3.5 text-amber-500" /> : wish.isPinned && <Pin className="w-3.5 h-3.5 text-rose-500 fill-current" />}
-                        <button 
-                          onClick={() => setOpenMenuId(isMenuOpen ? null : wish.id)}
-                          className={`p-1.5 rounded-xl transition-all ${isMenuOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-300 hover:text-slate-500 active:bg-slate-50'}`}
-                        >
+                        <button onClick={() => setOpenMenuId(isMenuOpen ? null : wish.id)} className={`p-1.5 rounded-xl transition-all ${isMenuOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-300 hover:text-slate-500 active:bg-slate-50'}`}>
                           <MoreVertical className="w-4 h-4" />
                         </button>
                       </div>
@@ -325,7 +289,7 @@ const Wishlist: React.FC<Props> = ({
                     <div className="space-y-1.5 mt-2">
                       <div className="flex justify-between items-end">
                         <div className="flex items-center gap-1 group/history cursor-pointer" onClick={() => setShowHistoryId(isHistoryOpen ? null : wish.id)}>
-                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{Math.round(progress)}% SAVED</span>
+                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{Math.round(progress)}%</span>
                            <History className={`w-2.5 h-2.5 text-slate-300 group-hover/history:text-rose-400 transition-colors ${isHistoryOpen ? 'text-rose-400' : ''}`} />
                         </div>
                         <div className="text-right" onClick={() => wish.status !== 'completed' && setActiveInjectId(wish.id)}>
@@ -341,27 +305,21 @@ const Wishlist: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/*注资历史展示*/}
               {isHistoryOpen && (
                 <div className="bg-slate-50 border-t border-slate-100 p-4 animate-in slide-in-from-top-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                    <History className="w-2.5 h-2.5" /> 注入记录
-                  </p>
                   <div className="space-y-2">
                     {(!wish.savingsHistory || wish.savingsHistory.length === 0) ? (
                       <p className="text-[10px] font-bold text-slate-300 text-center py-2 italic">暂无注入记录</p>
                     ) : (
                       wish.savingsHistory.slice().reverse().map((h, i) => (
                         <div key={i} className="flex justify-between items-center bg-white px-3 py-2 rounded-xl text-[10px] border border-slate-100 shadow-sm">
-                          <span className="font-bold text-slate-400">{new Date(h.timestamp).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="font-bold text-slate-400">{new Date(h.timestamp).toLocaleDateString()}</span>
                           <span className="font-black text-rose-600">+¥{h.amount.toLocaleString()}</span>
                         </div>
                       ))
                     )}
                   </div>
-                  <button onClick={() => setShowHistoryId(null)} className="w-full flex justify-center py-2 mt-2 text-slate-300 active:scale-95 transition-transform">
-                    <ChevronDown className="w-4 h-4 rotate-180" />
-                  </button>
+                  <button onClick={() => setShowHistoryId(null)} className="w-full flex justify-center py-2 mt-2 text-slate-300 active:scale-95 transition-transform"><ChevronDown className="w-4 h-4 rotate-180" /></button>
                 </div>
               )}
             </div>

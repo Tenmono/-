@@ -84,8 +84,6 @@ const App: React.FC = () => {
       const newWishes = importedData.wishes.filter(w => !existingIds.has(w.id));
       return [...prev, ...newWishes];
     });
-    const newCoins = Array.from({ length: 15 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 90 + 5}%` }));
-    setCoins(prev => [...prev, ...newCoins]);
   };
 
   if (!familyConfig.familyId) {
@@ -164,14 +162,6 @@ const App: React.FC = () => {
             />
           )}
         </main>
-      </div>
-
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-[60]">
-        {coins.map(coin => (
-          <div key={coin.id} className="absolute bottom-24 coin-animation" style={{ left: coin.left }}>
-            <Coins className="w-12 h-12 text-rose-500 drop-shadow-2xl" />
-          </div>
-        ))}
       </div>
 
       <nav className="fixed bottom-6 left-6 right-6 z-50">
